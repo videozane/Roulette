@@ -1,0 +1,86 @@
+// SPDX-License-Identifier: GPL-3.0
+
+pragma solidity >=0.8.9;
+
+contract Roulette{
+    
+    mapping(address => bool) aliveList;
+    mapping(address => bool) deadList;
+    address[] players;
+    uint256 odds;
+    uint256 playersTurn;
+    address creator;
+    address owner;
+    
+
+    event LogProtected(address sender);
+    
+    
+    
+    modifier onlyOwner {
+        require(owner == msg.sender, "You are not the owner.");
+        _;
+    }
+
+    modifier onlyAlive {
+        require(aliveList[msg.sender]== true, "You are dead.");
+        _;
+    }
+
+    function setToAlive(address user, bool isAllowed) public onlyOwner {
+        aliveList[user] = isAllowed;
+    }
+    
+    function setToDead(address user, bool isDead) public onlyOwner {
+        deadList[user] = isDead;
+    }
+    
+    function lose(address user) public onlyOwner {
+        deadList[user] = true;
+        aliveList[user] = false;
+        delete players;
+    }
+    
+    constructor(){
+        owner = msg.sender;
+    }
+    
+    function setOdds (uint256 oneInThisMany) public onlyOwner {
+        odds=oneInThisMany;
+    }
+    
+    function random() private view returns (uint) {
+        uint randomHash = uint(keccak256(abi.encodePacked(block.timestamp)));
+        return randomHash % odds;
+    } 
+    
+    function addPlayer (address player) public {
+        require(aliveList[player]==false, "Already playing");
+        require(deadList[player]!=true, "Player is dead");
+        setToAlive(player, true);
+        setToDead(player,false);
+        players.push(player);
+    }
+    
+    function isALoser(address player) view public returns (bool){
+        return deadList[player];
+    }
+    
+    
+    function getOwner() view public returns (address) {
+        return creator;
+    }
+    
+    function play() public onlyOwner {
+        uint a=1;
+        while(a==1){
+            for(uint i=0;i<players.length;i++){
+                if(random()==1){
+                    lose(players[i]);
+                    a=2;
+                    break;
+                }
+            }
+        }
+    }
+}
