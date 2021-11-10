@@ -50,8 +50,8 @@ contract Roulette{
     }
     
     function random() private view returns (uint) {
-        uint randomHash = uint(keccak256(abi.encodePacked(block.timestamp)));
-        return randomHash % odds;
+          return uint8(uint256(keccak256(abi.encodePacked(block.difficulty)))%(odds+1));
+
     } 
     
     function addPlayer (address player) public {
